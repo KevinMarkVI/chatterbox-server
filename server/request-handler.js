@@ -13,6 +13,7 @@ this file and include it in basic-server.js so that it actually works.
 **************************************************************/
 
 var url = require('url');
+var storage = {'results': []};
 
 
 module.exports.requestHandler = function(request, response) {
@@ -26,36 +27,52 @@ module.exports.requestHandler = function(request, response) {
   // http://nodejs.org/documentation/api/
   
   // Do some basic logging.
+  //console.log('response log: ', response);
   //
   // Adding more logging to your server can be an easy way to get passive
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
 
-  var storage = [];
-
   console.log("Serving request type " + request.method + " for url " + request.url);
 
   var path = "/classes/messages";
   var parsedUrl = url.parse(request.url).pathname;
-
+  console.log("Parsed URL: ", parsedUrl );
   // The outgoing status.
   var statusCode = 200;
+  var headers = defaultCorsHeaders;
 
-  if (parsedUrl !== path){
+  if (parsedUrl !== path && parsedUrl !== '/classes/room1'){
     statusCode = 404;
   };
 
   if (request.method === 'GET') {
-    console.log(request.method)
-    //send back the messages
+    response.writeHead(statusCode, headers);
   };
 
   if (request.method === 'POST') {
-    storage.push(request.url)
+    statusCode = 201;
+    var body = '';
+
+    request.on('data', function(chunk){
+      body += chunk;  
+    });
+
+    request.on('end', function() {
+      console.log("Body verification: ", body);
+      storage.results.push(JSON.parse(body))
+      console.log("This is our storage: ", storage);
+    });
+    response.writeHead(statusCode, headers);
+  };
+
+  if (request.method === 'OPTIONS') {
+    response.writeHead(statusCode, headers);
   };
 
   // See the note below about CORS headers.
-  var headers = defaultCorsHeaders;
+
+  //console.log('headers log: ', headers);
 
   // Tell the client we are sending them plain text.
   //
@@ -65,7 +82,7 @@ module.exports.requestHandler = function(request, response) {
 
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
-  response.writeHead(statusCode, headers);
+  //response.writeHead(statusCode, headers);
 
   // Make sure to always call response.end() - Node may not send
   // anything back to the client until you do. The string you pass to
@@ -74,7 +91,10 @@ module.exports.requestHandler = function(request, response) {
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  response.end(JSON.stringify("Hello, World!"));
+  console.log("This is storage: ", storage);
+  response.end(JSON.stringify(storage));
+
+  console.log('storage: ', storage);
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
