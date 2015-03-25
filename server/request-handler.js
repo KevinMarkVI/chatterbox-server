@@ -1,11 +1,7 @@
 var url = require('url');
 var count = 1;
 
-var storage = {'results': [{
-  username: 'dude',
-  text: 'hey whatsup?',
-  objectId: 0
-}]};
+var storage = {'results': []};
 
 var headers = {
   "access-control-allow-origin": "*",
