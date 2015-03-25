@@ -1,6 +1,11 @@
 var url = require('url');
+var count = 1;
 
-var storage = {'results': []};
+var storage = {'results': [{
+  username: 'dude',
+  text: 'hey whatsup?',
+  objectId: 0
+}]};
 
 var headers = {
   "access-control-allow-origin": "*",
@@ -9,7 +14,6 @@ var headers = {
   "access-control-max-age": 10, // Seconds.
   "Content-Type": "application/json"
 };
-
 
 
 
@@ -24,7 +28,6 @@ module.exports.requestHandler = function(request, response) {
 
   if (parsedUrl !== path && parsedUrl !== '/classes/room1'){
     statusCode = 404;
-    response.writeHead(statusCode, headers);
   }
 
   if (request.method === 'GET') {
@@ -34,10 +37,13 @@ module.exports.requestHandler = function(request, response) {
     statusCode = 201;
     var body = '';
     request.on('data', function(chunk){
-      body += chunk;  
+      count++;
+      body += chunk; 
     });
     request.on('end', function() {
-      storage.results.push(JSON.parse(body))
+      var finalMessage = JSON.parse(body);//-----Parsing the body object so it is not a string
+      finalMessage.objectId = count;//-----------This allows us to add the objectId key and value to the body data
+      storage.results.push(finalMessage);//------Now we can send our message to the chat room.
     });
     response.writeHead(statusCode, headers);
 
